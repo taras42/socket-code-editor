@@ -2,15 +2,17 @@ var APP = {};
 
 (function(APP) {
 
-	function initEditor(socket, editorTextArea, roomId, value) {
+	function initEditor(socket, editorTextArea, roomId, mode, value) {
 		function onEditorChange(editor) {
         	socket.emit("edit", editor.getValue(), roomId);
     	}
 
+    	editorTextArea.value = value;
+
 		var editor = CodeMirror.fromTextArea(editorTextArea, {
             lineNumbers: true,
             lineWrapping: true,
-            mode: value,
+            mode: mode,
             foldGutter: true,
             gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
         });
@@ -85,8 +87,8 @@ var APP = {};
 
 		socket.emit('room', roomId, name);
 
-		socket.on('userInit', function(users) {
-			var editor = initEditor(socket, editorTextArea, roomId, lenguageSelect.val());
+		socket.on('userInit', function(users, value) {
+			var editor = initEditor(socket, editorTextArea, roomId, lenguageSelect.val(), value);
 
 			initLenguageSelect(lenguageSelect, editor);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);

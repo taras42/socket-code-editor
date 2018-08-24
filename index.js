@@ -58,13 +58,15 @@ io.on('connection', function(socket) {
     var users = Object.values(rooms[roomId].soketIdToUsersMap);
 
     // init new user
-    io.sockets.connected[socket.id].emit("userInit", users);
+    io.sockets.connected[socket.id].emit("userInit", users, rooms[roomId].editorContent);
 
     // bordcast users to others in the room
     socket.broadcast.in(roomId).emit("newUserJoined", users);
   });
 
   socket.on('edit', function(content, roomId) {
+  	rooms[roomId].editorContent = content;
+
   	// bordcast content to others in the room
   	socket.broadcast.in(roomId).emit("updateEditor", content);
   });

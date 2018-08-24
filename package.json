@@ -1,0 +1,11 @@
+{
+  "name": "code-editor",
+  "version": "0.0.1",
+  "description": "collaborative code editor",
+  "dependencies": {
+    "codemirror": "^5.39.2",
+    "express": "^4.16.3",
+    "jquery": "^3.3.1",
+    "socket.io": "^2.1.1"
+  }
+}

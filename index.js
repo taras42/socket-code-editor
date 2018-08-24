@@ -1,0 +1,65 @@
+var express = require('express');
+var path = require("path");
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+app.use(express.static(path.join(__dirname, "scripts")));
+app.use(express.static(path.join(__dirname, "node_modules/jquery/dist")));
+app.use(express.static(path.join(__dirname, "node_modules/codemirror")));
+
+var rooms = {};
+
+function createRoomIfNotExists(roomId) {
+	if (!rooms[roomId]) {
+		rooms[roomId] = {
+			users: [],
+			editorContent: ""
+		};
+	}
+}
+
+app.get('/', function(req, res) {
+	var roomId = String(Date.now());
+
+	createRoomIfNotExists(roomId);
+
+	res.redirect('/room/' + roomId);
+});
+
+app.get('/room/:roomId', function(req, res) {
+	res.sendFile(__dirname + '/view/index.html');
+});
+
+io.on('connection', function(socket) {
+  console.log('a user connected');
+
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
+
+  socket.on('room', function(roomId, userName) {
+  	console.log("a used joined room " + roomId);
+
+    socket.join(roomId);
+
+    createRoomIfNotExists(roomId);
+
+    rooms[roomId].users.push(userName);
+
+    // init new user
+    io.sockets.connected[socket.id].emit("userInit", rooms[roomId].users);
+
+    // bordcast user name to others in the room
+    socket.broadcast.in(roomId).emit("newUserJoined", userName);
+  });
+
+  socket.on('edit', function(content, roomId) {
+  	// bordcast content to others in the room
+  	socket.broadcast.in(roomId).emit("updateEditor", content);
+  });
+});
+
+http.listen(3000, function() {
+	console.log('listening on *:3000');
+});

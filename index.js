@@ -62,13 +62,13 @@ io.on('connection', function(socket) {
 
     // bordcast users to others in the room
     socket.broadcast.in(roomId).emit("newUserJoined", users);
-  });
 
-  socket.on('edit', function(content, roomId) {
-  	rooms[roomId].editorContent = content;
+    socket.on('edit', function(content, roomId) {
+  		rooms[roomId].editorContent = content;
 
-  	// bordcast content to others in the room
-  	socket.broadcast.in(roomId).emit("updateEditor", content);
+  		// bordcast content to others in the room
+  		socket.broadcast.in(roomId).emit("updateEditor", content);
+  	});
   });
 });
 

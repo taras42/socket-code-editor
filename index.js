@@ -44,6 +44,13 @@ io.on('connection', function(socket) {
 			socket.broadcast.in(roomId).emit("userDisconnected", Object.values(rooms[roomId].soketIdToUsersMap));
 		}
 	});
+
+	Object.keys(rooms).forEach(function(roomId) {
+		if (rooms[roomId] && !Object.values(rooms[roomId].soketIdToUsersMap).length) {
+			console.log("room ", roomId, " deleted");
+			delete rooms[roomId];
+		}
+	})
    });
 
   socket.on('room', function(roomId, userName) {

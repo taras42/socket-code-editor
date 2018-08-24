@@ -2,6 +2,10 @@
   "name": "code-editor",
   "version": "0.0.1",
   "description": "collaborative code editor",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "codemirror": "^5.39.2",
     "express": "^4.16.3",

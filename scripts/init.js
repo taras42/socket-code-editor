@@ -30,9 +30,16 @@ var APP = {};
         return editor;
 	};
 
-	function initLenguageSelect(lenguageSelect, editor) {
+	function initLenguageSelect(lenguageSelect, socket, editor, mode) {
+		lenguageSelect.val(mode);
+
 		lenguageSelect.on("change", function() {
-            editor.setOption("mode", lenguageSelect.val());
+            socket.emit("modeChange", lenguageSelect.val());
+        });
+
+        socket.on("modeChanged", function(mode) {
+        	lenguageSelect.val(mode);
+        	editor.setOption("mode", mode);
         });
 	};
 
@@ -87,10 +94,10 @@ var APP = {};
 
 		socket.emit('room', roomId, name);
 
-		socket.on('userInit', function(users, value) {
+		socket.on('userInit', function(users, value, mode) {
 			var editor = initEditor(socket, editorTextArea, roomId, lenguageSelect.val(), value);
 
-			initLenguageSelect(lenguageSelect, editor);
+			initLenguageSelect(lenguageSelect, socket, editor, mode);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
 			initUsersList(users, socket, usersList);
 		});

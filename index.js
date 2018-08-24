@@ -13,7 +13,7 @@ var rooms = {};
 function createRoomIfNotExists(roomId) {
 	if (!rooms[roomId]) {
 		rooms[roomId] = {
-			users: [],
+			soketIdToUsersMap: {},
 			editorContent: ""
 		};
 	}
@@ -34,9 +34,17 @@ app.get('/room/:roomId', function(req, res) {
 io.on('connection', function(socket) {
   console.log('a user connected');
 
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
+  socket.on('disconnecting', function() {
+	console.log('user disconnected');
+
+	Object.keys(socket.rooms).forEach(function(roomId) {
+		if (rooms[roomId]) {
+			delete rooms[roomId].soketIdToUsersMap[socket.id];
+
+			socket.broadcast.in(roomId).emit("userDisconnected", Object.values(rooms[roomId].soketIdToUsersMap));
+		}
+	});
+   });
 
   socket.on('room', function(roomId, userName) {
   	console.log("a used joined room " + roomId);
@@ -45,13 +53,15 @@ io.on('connection', function(socket) {
 
     createRoomIfNotExists(roomId);
 
-    rooms[roomId].users.push(userName);
+    rooms[roomId].soketIdToUsersMap[socket.id] = userName;
+
+    var users = Object.values(rooms[roomId].soketIdToUsersMap);
 
     // init new user
-    io.sockets.connected[socket.id].emit("userInit", rooms[roomId].users);
+    io.sockets.connected[socket.id].emit("userInit", users);
 
-    // bordcast user name to others in the room
-    socket.broadcast.in(roomId).emit("newUserJoined", userName);
+    // bordcast users to others in the room
+    socket.broadcast.in(roomId).emit("newUserJoined", users);
   });
 
   socket.on('edit', function(content, roomId) {

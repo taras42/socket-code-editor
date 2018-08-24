@@ -44,10 +44,32 @@ var APP = {};
         });
 	};
 
-	function initUsersList(users, socket) {
-		socket.on("newUserJoined", function(userName) {
+	function initUsersList(users, socket, usersList) {
+		rerenderList(usersList, users);
 
+		socket.on("newUserJoined", function(users) {
+			rerenderList(usersList, users);
         });
+
+        socket.on("userDisconnected", function(users) {
+			rerenderList(usersList, users);
+        });
+	};
+
+	function rerenderList(usersList, users) {
+		usersList.empty();
+
+    	var html = users.reduce(function(memo, userName) {
+			memo += getUserListElement(userName);
+
+			return memo;
+		}, "");
+
+		usersList.append(html);
+	}
+
+	function getUserListElement(userName) {
+		return "<li class='list-group-item' data-name='" + userName + "'" + ">" + userName + "</li>";
 	};
 
 	APP.init = function(options) {
@@ -58,7 +80,8 @@ var APP = {};
 			editorTextArea = options.editorTextArea,
 			lenguageSelect = options.lenguageSelect,
 			copyRoomLinkButton = options.copyRoomLinkButton,
-			copyLocationInput = options.copyLocationInput;
+			copyLocationInput = options.copyLocationInput,
+			usersList = options.usersList;
 
 		socket.emit('room', roomId, name);
 
@@ -67,7 +90,7 @@ var APP = {};
 
 			initLenguageSelect(lenguageSelect, editor);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
-			initUsersList(users, socket);
+			initUsersList(users, socket, usersList);
 		});
 	}
 })(APP);

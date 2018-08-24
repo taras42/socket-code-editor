@@ -5,7 +5,8 @@
 		var editorTextArea = $("#editor")[0],
 	        lenguageSelect = $("#lenguage"),
 	        copyRoomLinkButton = $("#copyRoomLink"),
-	        copyLocationInput = $("#copyLocationInput");
+	        copyLocationInput = $("#copyLocationInput"),
+	        usersList = $("#usersList");
 
         var roomLocation = document.location.href,
         	roomId = roomLocation.split("/").reverse()[0];
@@ -17,6 +18,7 @@
 			roomId: roomId,
 			roomLocation: roomLocation,
 			socket: socket,
+			usersList: usersList,
 			editorTextArea: editorTextArea,
 			lenguageSelect: lenguageSelect,
 			copyRoomLinkButton: copyRoomLinkButton,

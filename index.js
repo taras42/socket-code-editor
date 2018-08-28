@@ -14,8 +14,11 @@ function createRoomIfNotExists(roomId) {
 	if (!rooms[roomId]) {
 		rooms[roomId] = {
 			soketIdToUsersMap: {},
-			editorContent: "",
-			editorMode: "javascript"
+			editor: {
+				content: "",
+				mode: "javascript",
+				selections: null
+			}
 		};
 	}
 }
@@ -66,21 +69,21 @@ io.on('connection', function(socket) {
     var users = Object.values(rooms[roomId].soketIdToUsersMap);
 
     // init new user
-    io.sockets.connected[socket.id].emit("userInit", users, 
-    	rooms[roomId].editorContent, rooms[roomId].editorMode);
+    io.sockets.connected[socket.id].emit("userInit", users, rooms[roomId].editor);
 
     // bordcast users to others in the room
     socket.broadcast.in(roomId).emit("newUserJoined", users);
 
-    socket.on('edit', function(content, roomId) {
-  		rooms[roomId].editorContent = content;
+    socket.on('edit', function(editor, roomId) {
+  		rooms[roomId].editor.content = editor.content || "";
+  		rooms[roomId].editor.selections = editor.selections || null;
 
   		// bordcast content to others in the room
-  		socket.broadcast.in(roomId).emit("updateEditor", content);
+  		socket.broadcast.in(roomId).emit("updateEditor", rooms[roomId].editor);
   	});
 
   	socket.on('modeChange', function(mode) {
-  		rooms[roomId].editorMode = mode;
+  		rooms[roomId].editor.mode = mode;
 
   		// bordcast mode to others in the room
   		socket.broadcast.in(roomId).emit("modeChanged", mode);

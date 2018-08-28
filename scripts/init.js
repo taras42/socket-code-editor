@@ -2,29 +2,34 @@ var APP = {};
 
 (function(APP) {
 
-	function initEditor(socket, editorTextArea, roomId, mode, value) {
-		function onEditorChange(editor) {
-        	socket.emit("edit", editor.getValue(), roomId);
+	function initEditor(socket, editorTextArea, roomId, state) {
+		function onEditorChange(editor, options) {
+			socket.emit("edit", {
+				content: editor.getValue(),
+				selections: editor.listSelections()
+			}, roomId);
     	}
 
-    	editorTextArea.value = value;
+    	function setEditorContentState(editor, state) {
+    		editor.setValue(state.content);
+            state.selections && editor.setSelections(state.selections);
+    	}
 
 		var editor = CodeMirror.fromTextArea(editorTextArea, {
             lineNumbers: true,
             lineWrapping: true,
-            mode: mode,
-            foldGutter: true,
-            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            mode: state.mode
         });
 
         editor.setSize("100%", "100%");
+        setEditorContentState(editor, state);
 
-        editor.on("change", onEditorChange);
+        editor.on("cursorActivity", onEditorChange);
 
-        socket.on("updateEditor", function(content) {
-            editor.off("change", onEditorChange);
-            editor.setValue(content);
-            editor.on("change", onEditorChange);
+        socket.on("updateEditor", function(state) {
+            editor.off("cursorActivity", onEditorChange);
+            setEditorContentState(editor, state);
+            editor.on("cursorActivity", onEditorChange);
         });
 
         return editor;
@@ -94,10 +99,10 @@ var APP = {};
 
 		socket.emit('room', roomId, name);
 
-		socket.on('userInit', function(users, value, mode) {
-			var editor = initEditor(socket, editorTextArea, roomId, lenguageSelect.val(), value);
+		socket.on('userInit', function(users, editorOptions) {
+			var editor = initEditor(socket, editorTextArea, roomId, editorOptions);
 
-			initLenguageSelect(lenguageSelect, socket, editor, mode);
+			initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
 			initUsersList(users, socket, usersList);
 		});

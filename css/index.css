@@ -1,0 +1,36 @@
+html, body {
+	height:100%;
+}
+
+body {
+	overflow: hidden;
+}
+
+.CodeMirror {
+    border: 1px solid #eee;
+}
+
+#copyLocationInput {
+	position: absolute;
+	top: 0;
+	right: 0;
+	opacity: 0;
+}
+
+.userCursor {
+	position: absolute;
+	z-index: 100;
+}
+
+.userCursor .userCursorDot {
+	display: inline-block;
+    width: 7px;
+    border-radius: 7px;
+    height: 7px;
+}
+
+.userCursor .userCursorName {
+	display: inline-block;
+    font-weight: bold;
+    vertical-align: middle;
+}

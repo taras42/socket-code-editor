@@ -1,4 +1,4 @@
-(function(APP) {
+(function(APP, $) {
 	$(function () {
 		var socket = io();
 
@@ -9,7 +9,7 @@
 	        usersList = $("#usersList");
 
         var roomLocation = document.location.href,
-        	roomId = roomLocation.split("/").reverse()[0];
+        	roomId = document.location.pathname.split("/").reverse()[0];
 
     	var name = prompt("Enter your name:") || "User" + Date.now();
 
@@ -25,4 +25,4 @@
 			copyLocationInput: copyLocationInput
 		});
 	});
-})(APP);
+})(APP, $);

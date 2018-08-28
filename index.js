@@ -5,6 +5,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.use(express.static(path.join(__dirname, "scripts")));
+app.use(express.static(path.join(__dirname, "css")));
 app.use(express.static(path.join(__dirname, "node_modules/jquery/dist")));
 app.use(express.static(path.join(__dirname, "node_modules/codemirror")));
 
@@ -21,6 +22,10 @@ function createRoomIfNotExists(roomId) {
 			}
 		};
 	}
+}
+
+function getUsersByRoomId(roomId) {
+	return Object.values(rooms[roomId].soketIdToUsersMap);
 }
 
 app.get('/', function(req, res) {
@@ -45,28 +50,34 @@ io.on('connection', function(socket) {
 		if (rooms[roomId]) {
 			delete rooms[roomId].soketIdToUsersMap[socket.id];
 
-			socket.broadcast.in(roomId).emit("userDisconnected", Object.values(rooms[roomId].soketIdToUsersMap));
+			socket.broadcast.in(roomId).emit("userDisconnected", getUsersByRoomId(roomId));
 		}
 	});
 
 	Object.keys(rooms).forEach(function(roomId) {
-		if (rooms[roomId] && !Object.values(rooms[roomId].soketIdToUsersMap).length) {
+		if (rooms[roomId] && !getUsersByRoomId(roomId).length) {
 			console.log("room ", roomId, " deleted");
 			delete rooms[roomId];
 		}
 	})
    });
 
-  socket.on('room', function(roomId, userName) {
+  socket.on('room', function(roomId, options) {
   	console.log("a used joined room " + roomId);
 
     socket.join(roomId);
 
     createRoomIfNotExists(roomId);
 
-    rooms[roomId].soketIdToUsersMap[socket.id] = userName;
+    rooms[roomId].soketIdToUsersMap[socket.id] = {
+      id: options.userId,
+    	name: options.userName,
+    	colour: options.userColour,
+    	cursorPos: {x: 0, y: 0},
+      screen: options.userScreen
+    };
 
-    var users = Object.values(rooms[roomId].soketIdToUsersMap);
+    var users = getUsersByRoomId(roomId);
 
     // init new user
     io.sockets.connected[socket.id].emit("userInit", users, rooms[roomId].editor);
@@ -87,6 +98,23 @@ io.on('connection', function(socket) {
 
   		// bordcast mode to others in the room
   		socket.broadcast.in(roomId).emit("modeChanged", mode);
+  	});
+
+  	socket.on('updateUserCursor', function(options, roomId) {
+      var user = rooms[roomId].soketIdToUsersMap[socket.id];
+
+  		user.cursorPos = {
+        x: options.x,
+        y: options.y
+      };
+
+      user.screen = {
+        width: options.screenWidth,
+        height: options.screenHeight
+      };
+
+  		// bordcast mode to others in the room
+  		socket.broadcast.in(roomId).emit("userCursorUpdated", getUsersByRoomId(roomId));
   	});
   });
 });

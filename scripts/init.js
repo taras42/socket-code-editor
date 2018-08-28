@@ -1,6 +1,73 @@
 var APP = {};
 
-(function(APP) {
+(function(APP, $) {
+
+	APP.userCursors = [];
+	APP.documentBody = $("body");
+	APP.userId = Date.now();
+
+	function getRandomColor() {
+	  var letters = '0123456789ABCDEF';
+	  var color = '#';
+
+	  for (var i = 0; i < 6; i++) {
+	    color += letters[Math.floor(Math.random() * 16)];
+	  }
+
+	  return color;
+	}
+
+	function renderUserCursors(users) {
+		APP.userCursors.forEach(function(cursorEl) {
+			cursorEl.remove();
+		});
+
+		APP.userCursors = [];
+
+		var cursors = users.reduce(function(memo, user) {
+			var cursor = getUserCursor(user);
+
+			if (cursor) {
+				memo.push(cursor);
+				APP.documentBody.append(cursor);
+			}
+
+			return memo;
+		}, []);
+
+		APP.userCursors = cursors;
+	}
+
+	function getUserCursor(user) {
+		var cursor,
+			cursorDot,
+			x = user.cursorPos.x,
+			y = user.cursorPos.y,
+			scaleX,
+			scaleY;
+
+		if (user.id !== APP.userId) {
+			cursor = $("<div class='userCursor'></div>");
+			cursorDot = $("<div class='userCursorDot'></div>");
+			cursor.append(cursorDot);
+			cursor.append($("<div class='userCursorName'>" + user.name +"</div>"));
+
+			cursorDot.css({
+				"backgroundColor": user.colour
+			});
+
+			scaleX = window.innerWidth/user.screen.width;
+			scaleY = window.innerHeight/user.screen.height;
+
+			cursor.css({
+				color: user.colour,
+				left: x * scaleX,
+				top: y * scaleY
+			});
+		}
+
+		return cursor;
+	}
 
 	function initEditor(socket, editorTextArea, roomId, state) {
 		function onEditorChange(editor, options) {
@@ -58,22 +125,48 @@ var APP = {};
         });
 	};
 
-	function initUsersList(users, socket, usersList) {
+	function initUsersTracking(users, socket, usersList, roomId) {
+		var then = Date.now();
+
 		rerenderList(usersList, users);
+		renderUserCursors(users);
 
 		socket.on("newUserJoined", function(users) {
 			rerenderList(usersList, users);
+			renderUserCursors(users);
         });
 
         socket.on("userDisconnected", function(users) {
 			rerenderList(usersList, users);
+			renderUserCursors(users);
         });
+
+        socket.on("userCursorUpdated", function(users) {
+			renderUserCursors(users);
+        });
+
+		document.addEventListener("mousemove", function(event) {
+			var now = Date.now();
+
+			if (now - then > 100) {
+				socket.emit("updateUserCursor", {
+					x: event.x,
+					y: event.y,
+					screenWidth: window.innerWidth,
+					screenHeight: window.innerHeight
+				}, roomId);
+
+				then = now;
+			}
+		});
 	};
 
 	function rerenderList(usersList, users) {
 		usersList.empty();
 
-    	var html = users.reduce(function(memo, userName) {
+    	var html = users.reduce(function(memo, user) {
+    		var userName = user.name;
+
 			memo += getUserListElement(userName);
 
 			return memo;
@@ -97,14 +190,22 @@ var APP = {};
 			copyLocationInput = options.copyLocationInput,
 			usersList = options.usersList;
 
-		socket.emit('room', roomId, name);
+		socket.emit('room', roomId, {
+			userName: name,
+			userColour: getRandomColor(),
+			userId: APP.userId,
+			userScreen: {
+				width: window.innerWidth,
+				height: window.innerHeight
+			}
+		});
 
 		socket.on('userInit', function(users, editorOptions) {
 			var editor = initEditor(socket, editorTextArea, roomId, editorOptions);
 
 			initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
-			initUsersList(users, socket, usersList);
+			initUsersTracking(users, socket, usersList, roomId);
 		});
 	}
-})(APP);
+})(APP, $);

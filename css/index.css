@@ -34,3 +34,7 @@ body {
     font-weight: bold;
     vertical-align: middle;
 }
+
+#usersList li {
+	font-weight: bold;
+}

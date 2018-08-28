@@ -165,9 +165,7 @@ var APP = {};
 		usersList.empty();
 
     	var html = users.reduce(function(memo, user) {
-    		var userName = user.name;
-
-			memo += getUserListElement(userName);
+    		memo += getUserListElement(user.name, user.colour);
 
 			return memo;
 		}, "");
@@ -175,8 +173,8 @@ var APP = {};
 		usersList.append(html);
 	}
 
-	function getUserListElement(userName) {
-		return "<li class='list-group-item' data-name='" + userName + "'" + ">" + userName + "</li>";
+	function getUserListElement(userName, userColour) {
+		return "<li class='list-group-item' data-name='" + userName + "' style='color: " + userColour + ";'" + ">" + userName + "</li>";
 	};
 
 	APP.init = function(options) {

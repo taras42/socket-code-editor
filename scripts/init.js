@@ -153,9 +153,9 @@ var APP = {};
 			//renderUserCursors(users);
         });
 
-      //   socket.on("userCursorUpdated", function(users) {
+      	//socket.on("userCursorUpdated", function(users) {
 			// renderUserCursors(users);
-      //   });
+      	//});
 
 		// document.addEventListener("mousemove", function(event) {
 		// 	var now = Date.now();

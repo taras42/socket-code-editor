@@ -6,7 +6,8 @@
 	        lenguageSelect = $("#lenguage"),
 	        copyRoomLinkButton = $("#copyRoomLink"),
 	        copyLocationInput = $("#copyLocationInput"),
-	        usersList = $("#usersList");
+	        usersList = $("#usersList"),
+					autoScroll = $("#autoScroll");
 
         var roomLocation = document.location.href,
         	roomId = document.location.pathname.split("/").reverse()[0];
@@ -19,6 +20,7 @@
 			roomLocation: roomLocation,
 			socket: socket,
 			usersList: usersList,
+			autoScroll: autoScroll,
 			editorTextArea: editorTextArea,
 			lenguageSelect: lenguageSelect,
 			copyRoomLinkButton: copyRoomLinkButton,

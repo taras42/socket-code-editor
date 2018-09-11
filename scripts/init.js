@@ -69,7 +69,11 @@ var APP = {};
 		return cursor;
 	}
 
-	function initEditor(socket, editorTextArea, roomId, state) {
+	function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
+		var scrollValueY = 0;
+
+		autoScroll.prop("checked", true);
+
 		function onEditorChange(editor, options) {
 			socket.emit("edit", {
 				content: editor.getValue(),
@@ -77,9 +81,22 @@ var APP = {};
 			}, roomId);
     	}
 
+		function onEditorScroll(editor) {
+			scrollValueY = editor.getScrollInfo().top;
+		}
+
     	function setEditorContentState(editor, state) {
+			var isAutoScroll = autoScroll.prop("checked");
+
     		editor.setValue(state.content);
-            state.selections && editor.setSelections(state.selections);
+
+			if (!isAutoScroll) {
+				editor.scrollTo(0, scrollValueY);
+			}
+
+            state.selections && editor.setSelections(state.selections, null, {
+				scroll: isAutoScroll
+			});
     	}
 
 		var editor = CodeMirror.fromTextArea(editorTextArea, {
@@ -92,6 +109,7 @@ var APP = {};
         setEditorContentState(editor, state);
 
         editor.on("cursorActivity", onEditorChange);
+		editor.on("scroll", onEditorScroll);
 
         socket.on("updateEditor", function(state) {
             editor.off("cursorActivity", onEditorChange);
@@ -186,7 +204,8 @@ var APP = {};
 			lenguageSelect = options.lenguageSelect,
 			copyRoomLinkButton = options.copyRoomLinkButton,
 			copyLocationInput = options.copyLocationInput,
-			usersList = options.usersList;
+			usersList = options.usersList,
+			autoScroll = options.autoScroll;
 
 		socket.emit('room', roomId, {
 			userName: name,
@@ -199,7 +218,7 @@ var APP = {};
 		});
 
 		socket.on('userInit', function(users, editorOptions) {
-			var editor = initEditor(socket, editorTextArea, roomId, editorOptions);
+			var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
 
 			initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
 			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);

@@ -129,36 +129,36 @@ var APP = {};
 		var then = Date.now();
 
 		rerenderList(usersList, users);
-		renderUserCursors(users);
+		//renderUserCursors(users);
 
 		socket.on("newUserJoined", function(users) {
 			rerenderList(usersList, users);
-			renderUserCursors(users);
+			//renderUserCursors(users);
         });
 
         socket.on("userDisconnected", function(users) {
 			rerenderList(usersList, users);
-			renderUserCursors(users);
+			//renderUserCursors(users);
         });
 
-        socket.on("userCursorUpdated", function(users) {
-			renderUserCursors(users);
-        });
+      //   socket.on("userCursorUpdated", function(users) {
+			// renderUserCursors(users);
+      //   });
 
-		document.addEventListener("mousemove", function(event) {
-			var now = Date.now();
-
-			if (now - then > 100) {
-				socket.emit("updateUserCursor", {
-					x: event.x,
-					y: event.y,
-					screenWidth: window.innerWidth,
-					screenHeight: window.innerHeight
-				}, roomId);
-
-				then = now;
-			}
-		});
+		// document.addEventListener("mousemove", function(event) {
+		// 	var now = Date.now();
+		//
+		// 	if (now - then > 100) {
+		// 		socket.emit("updateUserCursor", {
+		// 			x: event.x,
+		// 			y: event.y,
+		// 			screenWidth: window.innerWidth,
+		// 			screenHeight: window.innerHeight
+		// 		}, roomId);
+		//
+		// 		then = now;
+		// 	}
+		// });
 	};
 
 	function rerenderList(usersList, users) {

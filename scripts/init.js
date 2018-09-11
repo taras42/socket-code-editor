@@ -1,100 +1,100 @@
 var APP = {};
 
-(function(APP, $) {
+(function (APP, $) {
 
-	APP.userCursors = [];
-	APP.documentBody = $("body");
-	APP.userId = Date.now();
+    APP.userCursors = [];
+    APP.documentBody = $("body");
+    APP.userId = Date.now();
 
-	function getRandomColor() {
-	  var letters = '0123456789ABCDEF';
-	  var color = '#';
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
 
-	  for (var i = 0; i < 6; i++) {
-	    color += letters[Math.floor(Math.random() * 16)];
-	  }
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
 
-	  return color;
-	}
+        return color;
+    }
 
-	function renderUserCursors(users) {
-		APP.userCursors.forEach(function(cursorEl) {
-			cursorEl.remove();
-		});
+    function renderUserCursors(users) {
+        APP.userCursors.forEach(function (cursorEl) {
+            cursorEl.remove();
+        });
 
-		APP.userCursors = [];
+        APP.userCursors = [];
 
-		var cursors = users.reduce(function(memo, user) {
-			var cursor = getUserCursor(user);
+        var cursors = users.reduce(function (memo, user) {
+            var cursor = getUserCursor(user);
 
-			if (cursor) {
-				memo.push(cursor);
-				APP.documentBody.append(cursor);
-			}
+            if (cursor) {
+                memo.push(cursor);
+                APP.documentBody.append(cursor);
+            }
 
-			return memo;
-		}, []);
+            return memo;
+        }, []);
 
-		APP.userCursors = cursors;
-	}
+        APP.userCursors = cursors;
+    }
 
-	function getUserCursor(user) {
-		var cursor,
-			cursorDot,
-			x = user.cursorPos.x,
-			y = user.cursorPos.y,
-			scaleX,
-			scaleY;
+    function getUserCursor(user) {
+        var cursor,
+            cursorDot,
+            x = user.cursorPos.x,
+            y = user.cursorPos.y,
+            scaleX,
+            scaleY;
 
-		if (user.id !== APP.userId) {
-			cursor = $("<div class='userCursor'></div>");
-			cursorDot = $("<div class='userCursorDot'></div>");
-			cursor.append(cursorDot);
-			cursor.append($("<div class='userCursorName'>" + user.name +"</div>"));
+        if (user.id !== APP.userId) {
+            cursor = $("<div class='userCursor'></div>");
+            cursorDot = $("<div class='userCursorDot'></div>");
+            cursor.append(cursorDot);
+            cursor.append($("<div class='userCursorName'>" + user.name + "</div>"));
 
-			cursorDot.css({
-				"backgroundColor": user.colour
-			});
+            cursorDot.css({
+                "backgroundColor": user.colour
+            });
 
-			scaleX = window.innerWidth/user.screen.width;
-			scaleY = window.innerHeight/user.screen.height;
+            scaleX = window.innerWidth / user.screen.width;
+            scaleY = window.innerHeight / user.screen.height;
 
-			cursor.css({
-				color: user.colour,
-				left: x * scaleX,
-				top: y * scaleY
-			});
-		}
+            cursor.css({
+                color: user.colour,
+                left: x * scaleX,
+                top: y * scaleY
+            });
+        }
 
-		return cursor;
-	}
+        return cursor;
+    }
 
-	function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
-		autoScroll.prop("checked", true);
+    function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
+        autoScroll.prop("checked", true);
 
-		function onEditorChange(editor, options) {
-			socket.emit("edit", {
-				content: editor.getValue(),
-				selections: editor.listSelections()
-			}, roomId);
-    	}
+        function onEditorChange(editor, options) {
+            socket.emit("edit", {
+                content: editor.getValue(),
+                selections: editor.listSelections()
+            }, roomId);
+        }
 
-    	function setEditorContentState(editor, state) {
-			var isAutoScroll = autoScroll.prop("checked"),
-				scrollInfo = editor.getScrollInfo();
+        function setEditorContentState(editor, state) {
+            var isAutoScroll = autoScroll.prop("checked"),
+                scrollInfo = editor.getScrollInfo();
 
-    		editor.setValue(state.content);
+            editor.setValue(state.content);
 
-			if (!isAutoScroll) {
-				editor.scrollTo(0, scrollInfo.top);
-			}
+            if (!isAutoScroll) {
+                editor.scrollTo(0, scrollInfo.top);
+            }
 
             state.selections && editor.setSelections(state.selections, null, {
-				scroll: isAutoScroll
-			});
-    	}
+                scroll: isAutoScroll
+            });
+        }
 
-		var editor = CodeMirror.fromTextArea(editorTextArea, {
+        var editor = CodeMirror.fromTextArea(editorTextArea, {
             lineNumbers: true,
             lineWrapping: true,
             mode: state.mode
@@ -105,118 +105,118 @@ var APP = {};
 
         editor.on("cursorActivity", onEditorChange);
 
-        socket.on("updateEditor", function(state) {
+        socket.on("updateEditor", function (state) {
             editor.off("cursorActivity", onEditorChange);
             setEditorContentState(editor, state);
             editor.on("cursorActivity", onEditorChange);
         });
 
         return editor;
-	};
+    };
 
-	function initLenguageSelect(lenguageSelect, socket, editor, mode) {
-		lenguageSelect.val(mode);
+    function initLenguageSelect(lenguageSelect, socket, editor, mode) {
+        lenguageSelect.val(mode);
 
-		lenguageSelect.on("change", function() {
+        lenguageSelect.on("change", function () {
             socket.emit("modeChange", lenguageSelect.val());
         });
 
-        socket.on("modeChanged", function(mode) {
-        	lenguageSelect.val(mode);
-        	editor.setOption("mode", mode);
+        socket.on("modeChanged", function (mode) {
+            lenguageSelect.val(mode);
+            editor.setOption("mode", mode);
         });
-	};
+    };
 
-	function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation) {
-		copyRoomLinkButton.on("click", function() {
+    function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation) {
+        copyRoomLinkButton.on("click", function () {
             copyLocationInput.val(roomLocation);
 
             copyLocationInput[0].select();
 
             document.execCommand("copy");
         });
-	};
+    };
 
-	function initUsersTracking(users, socket, usersList, roomId) {
-		var then = Date.now();
+    function initUsersTracking(users, socket, usersList, roomId) {
+        var then = Date.now();
 
-		rerenderList(usersList, users);
-		//renderUserCursors(users);
+        rerenderList(usersList, users);
+        //renderUserCursors(users);
 
-		socket.on("newUserJoined", function(users) {
-			rerenderList(usersList, users);
-			//renderUserCursors(users);
+        socket.on("newUserJoined", function (users) {
+            rerenderList(usersList, users);
+            //renderUserCursors(users);
         });
 
-        socket.on("userDisconnected", function(users) {
-			rerenderList(usersList, users);
-			//renderUserCursors(users);
+        socket.on("userDisconnected", function (users) {
+            rerenderList(usersList, users);
+            //renderUserCursors(users);
         });
 
-      	//socket.on("userCursorUpdated", function(users) {
-			// renderUserCursors(users);
-      	//});
+        //socket.on("userCursorUpdated", function(users) {
+        // renderUserCursors(users);
+        //});
 
-		// document.addEventListener("mousemove", function(event) {
-		// 	var now = Date.now();
-		//
-		// 	if (now - then > 100) {
-		// 		socket.emit("updateUserCursor", {
-		// 			x: event.x,
-		// 			y: event.y,
-		// 			screenWidth: window.innerWidth,
-		// 			screenHeight: window.innerHeight
-		// 		}, roomId);
-		//
-		// 		then = now;
-		// 	}
-		// });
-	};
+        // document.addEventListener("mousemove", function(event) {
+        // 	var now = Date.now();
+        //
+        // 	if (now - then > 100) {
+        // 		socket.emit("updateUserCursor", {
+        // 			x: event.x,
+        // 			y: event.y,
+        // 			screenWidth: window.innerWidth,
+        // 			screenHeight: window.innerHeight
+        // 		}, roomId);
+        //
+        // 		then = now;
+        // 	}
+        // });
+    };
 
-	function rerenderList(usersList, users) {
-		usersList.empty();
+    function rerenderList(usersList, users) {
+        usersList.empty();
 
-    	var html = users.reduce(function(memo, user) {
-    		memo += getUserListElement(user.name, user.colour);
+        var html = users.reduce(function (memo, user) {
+            memo += getUserListElement(user.name, user.colour);
 
-			return memo;
-		}, "");
+            return memo;
+        }, "");
 
-		usersList.append(html);
-	}
+        usersList.append(html);
+    }
 
-	function getUserListElement(userName, userColour) {
-		return "<li class='list-group-item' data-name='" + userName + "' style='color: " + userColour + ";'" + ">" + userName + "</li>";
-	};
+    function getUserListElement(userName, userColour) {
+        return "<li class='list-group-item' data-name='" + userName + "' style='color: " + userColour + ";'" + ">" + userName + "</li>";
+    };
 
-	APP.init = function(options) {
-		var socket = options.socket,
-			roomId = options.roomId,
-			roomLocation = options.roomLocation,
-			name = options.name,
-			editorTextArea = options.editorTextArea,
-			lenguageSelect = options.lenguageSelect,
-			copyRoomLinkButton = options.copyRoomLinkButton,
-			copyLocationInput = options.copyLocationInput,
-			usersList = options.usersList,
-			autoScroll = options.autoScroll;
+    APP.init = function (options) {
+        var socket = options.socket,
+            roomId = options.roomId,
+            roomLocation = options.roomLocation,
+            name = options.name,
+            editorTextArea = options.editorTextArea,
+            lenguageSelect = options.lenguageSelect,
+            copyRoomLinkButton = options.copyRoomLinkButton,
+            copyLocationInput = options.copyLocationInput,
+            usersList = options.usersList,
+            autoScroll = options.autoScroll;
 
-		socket.emit('room', roomId, {
-			userName: name,
-			userColour: getRandomColor(),
-			userId: APP.userId,
-			userScreen: {
-				width: window.innerWidth,
-				height: window.innerHeight
-			}
-		});
+        socket.emit('room', roomId, {
+            userName: name,
+            userColour: getRandomColor(),
+            userId: APP.userId,
+            userScreen: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
+        });
 
-		socket.on('userInit', function(users, editorOptions) {
-			var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
+        socket.on('userInit', function (users, editorOptions) {
+            var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
 
-			initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
-			initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
-			initUsersTracking(users, socket, usersList, roomId);
-		});
-	}
+            initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
+            initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
+            initUsersTracking(users, socket, usersList, roomId);
+        });
+    }
 })(APP, $);

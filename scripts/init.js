@@ -70,8 +70,6 @@ var APP = {};
 	}
 
 	function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
-		var scrollValueY = 0;
-
 		autoScroll.prop("checked", true);
 
 		function onEditorChange(editor, options) {
@@ -81,17 +79,14 @@ var APP = {};
 			}, roomId);
     	}
 
-		function onEditorScroll(editor) {
-			scrollValueY = editor.getScrollInfo().top;
-		}
-
     	function setEditorContentState(editor, state) {
-			var isAutoScroll = autoScroll.prop("checked");
+			var isAutoScroll = autoScroll.prop("checked"),
+				scrollInfo = editor.getScrollInfo();
 
     		editor.setValue(state.content);
 
 			if (!isAutoScroll) {
-				editor.scrollTo(0, scrollValueY);
+				editor.scrollTo(0, scrollInfo.top);
 			}
 
             state.selections && editor.setSelections(state.selections, null, {
@@ -109,7 +104,6 @@ var APP = {};
         setEditorContentState(editor, state);
 
         editor.on("cursorActivity", onEditorChange);
-		editor.on("scroll", onEditorScroll);
 
         socket.on("updateEditor", function(state) {
             editor.off("cursorActivity", onEditorChange);

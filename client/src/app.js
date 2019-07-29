@@ -69,7 +69,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
 function initLanguageSelect(languageSelect, socket, editor, mode) {
     languageSelect.value = mode;
 
-    languageSelect.on("change", function () {
+    languageSelect.addEventListener("change", function () {
         socket.emit("modeChange", languageSelect.value);
     });
 

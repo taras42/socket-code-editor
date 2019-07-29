@@ -6,8 +6,6 @@ var io = require('socket.io')(http);
 
 app.use(express.static(path.join(__dirname, "scripts")));
 app.use(express.static(path.join(__dirname, "css")));
-app.use(express.static(path.join(__dirname, "node_modules/jquery/dist")));
-app.use(express.static(path.join(__dirname, "node_modules/codemirror")));
 
 var rooms = {};
 

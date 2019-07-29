@@ -32,7 +32,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
     }
 
     function setEditorContentState(editor, state) {
-        var isAutoScroll = autoScroll.checked,
+        const isAutoScroll = autoScroll.checked,
             scrollInfo = editor.getScrollInfo();
 
         editor.setValue(state.content);

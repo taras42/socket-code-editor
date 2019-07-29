@@ -6,7 +6,7 @@ import 'codemirror/lib/codemirror.css';
 
 const socket = io();
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
     const editorTextArea = document.getElementById('editor'),
         languageSelect = document.getElementById('language'),
         copyRoomLinkButton = document.getElementById('copyRoomLink'),

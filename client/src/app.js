@@ -1,222 +1,152 @@
-var APP = {};
+import CodeMirror from 'codemirror';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/clike/clike';
+import 'codemirror/mode/xml/xml';
+import 'codemirror/mode/htmlmixed/htmlmixed';
 
-(function (APP, $) {
+const App = {};
 
-    APP.userCursors = [];
-    APP.documentBody = $("body");
-    APP.userId = Date.now();
+App.documentBody = document.body;
+App.userId = Date.now();
 
-    function getRandomColor() {
-        var letters = '0123456789ABCDEF';
-        var color = '#';
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
 
-        for (var i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-
-        return color;
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
     }
 
-    function renderUserCursors(users) {
-        APP.userCursors.forEach(function (cursorEl) {
-            cursorEl.remove();
+    return color;
+}
+
+function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
+    autoScroll.prop("checked", true);
+
+    function onEditorChange(editor, options) {
+        socket.emit("edit", {
+            content: editor.getValue(),
+            selections: editor.listSelections()
+        }, roomId);
+    }
+
+    function setEditorContentState(editor, state) {
+        var isAutoScroll = autoScroll.prop("checked"),
+            scrollInfo = editor.getScrollInfo();
+
+        editor.setValue(state.content);
+
+        if (!isAutoScroll) {
+            editor.scrollTo(0, scrollInfo.top);
+        }
+
+        state.selections && editor.setSelections(state.selections, null, {
+            scroll: isAutoScroll
         });
-
-        APP.userCursors = [];
-
-        var cursors = users.reduce(function (memo, user) {
-            var cursor = getUserCursor(user);
-
-            if (cursor) {
-                memo.push(cursor);
-                APP.documentBody.append(cursor);
-            }
-
-            return memo;
-        }, []);
-
-        APP.userCursors = cursors;
     }
 
-    function getUserCursor(user) {
-        var cursor,
-            cursorDot,
-            x = user.cursorPos.x,
-            y = user.cursorPos.y,
-            scaleX,
-            scaleY;
+    var editor = CodeMirror.fromTextArea(editorTextArea, {
+        lineNumbers: true,
+        lineWrapping: true,
+        mode: state.mode
+    });
 
-        if (user.id !== APP.userId) {
-            cursor = $("<div class='userCursor'></div>");
-            cursorDot = $("<div class='userCursorDot'></div>");
-            cursor.append(cursorDot);
-            cursor.append($("<div class='userCursorName'>" + user.name + "</div>"));
+    editor.setSize("100%", "100%");
+    setEditorContentState(editor, state);
 
-            cursorDot.css({
-                "backgroundColor": user.colour
-            });
+    editor.on("cursorActivity", onEditorChange);
 
-            scaleX = window.innerWidth / user.screen.width;
-            scaleY = window.innerHeight / user.screen.height;
-
-            cursor.css({
-                color: user.colour,
-                left: x * scaleX,
-                top: y * scaleY
-            });
-        }
-
-        return cursor;
-    }
-
-    function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
-        autoScroll.prop("checked", true);
-
-        function onEditorChange(editor, options) {
-            socket.emit("edit", {
-                content: editor.getValue(),
-                selections: editor.listSelections()
-            }, roomId);
-        }
-
-        function setEditorContentState(editor, state) {
-            var isAutoScroll = autoScroll.prop("checked"),
-                scrollInfo = editor.getScrollInfo();
-
-            editor.setValue(state.content);
-
-            if (!isAutoScroll) {
-                editor.scrollTo(0, scrollInfo.top);
-            }
-
-            state.selections && editor.setSelections(state.selections, null, {
-                scroll: isAutoScroll
-            });
-        }
-
-        var editor = CodeMirror.fromTextArea(editorTextArea, {
-            lineNumbers: true,
-            lineWrapping: true,
-            mode: state.mode
-        });
-
-        editor.setSize("100%", "100%");
+    socket.on("updateEditor", function (state) {
+        editor.off("cursorActivity", onEditorChange);
         setEditorContentState(editor, state);
-
         editor.on("cursorActivity", onEditorChange);
+    });
 
-        socket.on("updateEditor", function (state) {
-            editor.off("cursorActivity", onEditorChange);
-            setEditorContentState(editor, state);
-            editor.on("cursorActivity", onEditorChange);
-        });
+    return editor;
+};
 
-        return editor;
-    };
+function initLanguageSelect(languageSelect, socket, editor, mode) {
+    languageSelect.val(mode);
 
-    function initLenguageSelect(lenguageSelect, socket, editor, mode) {
-        lenguageSelect.val(mode);
+    languageSelect.on("change", function () {
+        socket.emit("modeChange", languageSelect.val());
+    });
 
-        lenguageSelect.on("change", function () {
-            socket.emit("modeChange", lenguageSelect.val());
-        });
+    socket.on("modeChanged", function (mode) {
+        languageSelect.val(mode);
+        editor.setOption("mode", mode);
+    });
+};
 
-        socket.on("modeChanged", function (mode) {
-            lenguageSelect.val(mode);
-            editor.setOption("mode", mode);
-        });
-    };
+function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation) {
+    copyRoomLinkButton.on("click", function () {
+        copyLocationInput.val(roomLocation);
 
-    function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation) {
-        copyRoomLinkButton.on("click", function () {
-            copyLocationInput.val(roomLocation);
+        copyLocationInput[0].select();
 
-            copyLocationInput[0].select();
+        document.execCommand("copy");
+    });
+};
 
-            document.execCommand("copy");
-        });
-    };
+function initUsersTracking(users, socket, usersList, roomId) {
+    var then = Date.now();
 
-    function initUsersTracking(users, socket, usersList, roomId) {
-        var then = Date.now();
+    rerenderList(usersList, users);
 
+    socket.on("newUserJoined", function (users) {
         rerenderList(usersList, users);
-        //renderUserCursors(users);
+    });
 
-        socket.on("newUserJoined", function (users) {
-            rerenderList(usersList, users);
-            //renderUserCursors(users);
-        });
+    socket.on("userDisconnected", function (users) {
+        rerenderList(usersList, users);
+    });
+};
 
-        socket.on("userDisconnected", function (users) {
-            rerenderList(usersList, users);
-            //renderUserCursors(users);
-        });
+function rerenderList(usersList, users) {
+    usersList.empty();
 
-        //socket.on("userCursorUpdated", function(users) {
-        // renderUserCursors(users);
-        //});
+    var html = users.reduce(function (memo, user) {
+        memo += getUserListElement(user.name, user.colour);
 
-        // document.addEventListener("mousemove", function(event) {
-        // 	var now = Date.now();
-        //
-        // 	if (now - then > 100) {
-        // 		socket.emit("updateUserCursor", {
-        // 			x: event.x,
-        // 			y: event.y,
-        // 			screenWidth: window.innerWidth,
-        // 			screenHeight: window.innerHeight
-        // 		}, roomId);
-        //
-        // 		then = now;
-        // 	}
-        // });
-    };
+        return memo;
+    }, "");
 
-    function rerenderList(usersList, users) {
-        usersList.empty();
+    usersList.append(html);
+}
 
-        var html = users.reduce(function (memo, user) {
-            memo += getUserListElement(user.name, user.colour);
+function getUserListElement(userName, userColour) {
+    return `<li class='list-group-item' data-name='${userName}' style='color: ${userColour};'>${userName}</li>`;
+};
 
-            return memo;
-        }, "");
+App.init = function (options) {
+    var socket = options.socket,
+        roomId = options.roomId,
+        roomLocation = options.roomLocation,
+        name = options.name,
+        editorTextArea = options.editorTextArea,
+        languageSelect = options.languageSelect,
+        copyRoomLinkButton = options.copyRoomLinkButton,
+        copyLocationInput = options.copyLocationInput,
+        usersList = options.usersList,
+        autoScroll = options.autoScroll;
 
-        usersList.append(html);
-    }
+    socket.emit('room', roomId, {
+        userName: name,
+        userColour: getRandomColor(),
+        userId: App.userId,
+        userScreen: {
+            width: window.innerWidth,
+            height: window.innerHeight
+        }
+    });
 
-    function getUserListElement(userName, userColour) {
-        return "<li class='list-group-item' data-name='" + userName + "' style='color: " + userColour + ";'" + ">" + userName + "</li>";
-    };
+    socket.on('userInit', function (users, editorOptions) {
+        var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
 
-    APP.init = function (options) {
-        var socket = options.socket,
-            roomId = options.roomId,
-            roomLocation = options.roomLocation,
-            name = options.name,
-            editorTextArea = options.editorTextArea,
-            lenguageSelect = options.lenguageSelect,
-            copyRoomLinkButton = options.copyRoomLinkButton,
-            copyLocationInput = options.copyLocationInput,
-            usersList = options.usersList,
-            autoScroll = options.autoScroll;
+        initLanguageSelect(languageSelect, socket, editor, editorOptions.mode);
+        initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
+        initUsersTracking(users, socket, usersList, roomId);
+    });
+}
 
-        socket.emit('room', roomId, {
-            userName: name,
-            userColour: getRandomColor(),
-            userId: APP.userId,
-            userScreen: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            }
-        });
-
-        socket.on('userInit', function (users, editorOptions) {
-            var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
-
-            initLenguageSelect(lenguageSelect, socket, editor, editorOptions.mode);
-            initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);
-            initUsersTracking(users, socket, usersList, roomId);
-        });
-    }
-})(APP, $);
+export default App;

@@ -4,7 +4,7 @@ import App from './app';
 const socket = io();
 
 const editorTextArea = document.getElementById('#editor'),
-    lenguageSelect = document.getElementById('#lenguage'),
+    languageSelect = document.getElementById('#language'),
     copyRoomLinkButton = document.getElementById('#copyRoomLink'),
     copyLocationInput = document.getElementById('#copyLocationInput'),
     usersList = document.getElementById('#usersList'),
@@ -23,7 +23,7 @@ App.init({
     usersList: usersList,
     autoScroll: autoScroll,
     editorTextArea: editorTextArea,
-    lenguageSelect: lenguageSelect,
+    languageSelect: languageSelect,
     copyRoomLinkButton: copyRoomLinkButton,
     copyLocationInput: copyLocationInput
 });

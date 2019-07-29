@@ -11,10 +11,10 @@ App.documentBody = document.body;
 App.userId = Date.now();
 
 function getRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
+    const letters = '0123456789ABCDEF';
+    const color = '#';
 
-    for (var i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) {
         color += letters[Math.floor(Math.random() * 16)];
     }
 
@@ -46,7 +46,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
         });
     }
 
-    var editor = CodeMirror.fromTextArea(editorTextArea, {
+    const editor = CodeMirror.fromTextArea(editorTextArea, {
         lineNumbers: true,
         lineWrapping: true,
         mode: state.mode
@@ -104,7 +104,7 @@ function initUsersTracking(users, socket, usersList, roomId) {
 function rerenderList(usersList, users) {
     usersList.innerHTML = '';
 
-    var html = users.reduce(function (memo, user) {
+    const html = users.reduce(function (memo, user) {
         memo += getUserListElement(user.name, user.colour);
 
         return memo;
@@ -120,7 +120,7 @@ function getUserListElement(userName, userColour) {
 };
 
 App.init = function (options) {
-    var socket = options.socket,
+    const socket = options.socket,
         roomId = options.roomId,
         roomLocation = options.roomLocation,
         name = options.name,
@@ -142,7 +142,7 @@ App.init = function (options) {
     });
 
     socket.on('userInit', function (users, editorOptions) {
-        var editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
+        const editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
 
         initLanguageSelect(languageSelect, socket, editor, editorOptions.mode);
         initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation);

@@ -1,6 +1,8 @@
 import io from 'socket.io-client/dist/socket.io';
 import App from './app';
 
+import '../styles/index.css';
+
 const socket = io();
 
 const editorTextArea = document.getElementById('#editor'),

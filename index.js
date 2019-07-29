@@ -4,8 +4,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.use(express.static(path.join(__dirname, "scripts")));
-app.use(express.static(path.join(__dirname, "css")));
+app.use(express.static(path.join(__dirname, "dist")));
 
 var rooms = {};
 

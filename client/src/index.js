@@ -2,6 +2,7 @@ import io from 'socket.io-client/dist/socket.io';
 import App from './app';
 
 import '../styles/index.css';
+import 'codemirror/lib/codemirror.css';
 
 const socket = io();
 

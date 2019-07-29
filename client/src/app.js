@@ -1,4 +1,5 @@
 import CodeMirror from 'codemirror';
+import escapeHTML from 'escape-html';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/clike/clike';
 import 'codemirror/mode/xml/xml';
@@ -21,7 +22,7 @@ function getRandomColor() {
 }
 
 function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
-    autoScroll.prop("checked", true);
+    autoScroll.checked = true;
 
     function onEditorChange(editor, options) {
         socket.emit("edit", {
@@ -31,7 +32,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
     }
 
     function setEditorContentState(editor, state) {
-        var isAutoScroll = autoScroll.prop("checked"),
+        var isAutoScroll = autoScroll.checked,
             scrollInfo = editor.getScrollInfo();
 
         editor.setValue(state.content);
@@ -66,31 +67,29 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
 };
 
 function initLanguageSelect(languageSelect, socket, editor, mode) {
-    languageSelect.val(mode);
+    languageSelect.value = mode;
 
     languageSelect.on("change", function () {
-        socket.emit("modeChange", languageSelect.val());
+        socket.emit("modeChange", languageSelect.value);
     });
 
     socket.on("modeChanged", function (mode) {
-        languageSelect.val(mode);
+        languageSelect.value = mode;
         editor.setOption("mode", mode);
     });
 };
 
 function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocation) {
-    copyRoomLinkButton.on("click", function () {
-        copyLocationInput.val(roomLocation);
+    copyRoomLinkButton.addEventListener("click", () => {
+        copyLocationInput.value = roomLocation;
 
-        copyLocationInput[0].select();
+        copyLocationInput.select();
 
         document.execCommand("copy");
     });
 };
 
 function initUsersTracking(users, socket, usersList, roomId) {
-    var then = Date.now();
-
     rerenderList(usersList, users);
 
     socket.on("newUserJoined", function (users) {
@@ -103,7 +102,7 @@ function initUsersTracking(users, socket, usersList, roomId) {
 };
 
 function rerenderList(usersList, users) {
-    usersList.empty();
+    usersList.innerHTML = '';
 
     var html = users.reduce(function (memo, user) {
         memo += getUserListElement(user.name, user.colour);
@@ -111,10 +110,12 @@ function rerenderList(usersList, users) {
         return memo;
     }, "");
 
-    usersList.append(html);
+    usersList.innerHTML = html;
 }
 
 function getUserListElement(userName, userColour) {
+    userName = escapeHTML(userName);
+
     return `<li class='list-group-item' data-name='${userName}' style='color: ${userColour};'>${userName}</li>`;
 };
 

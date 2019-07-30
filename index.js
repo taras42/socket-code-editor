@@ -4,7 +4,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.use(express.static(path.join(__dirname, "dist")));
+app.use(express.static(path.join(__dirname, "dist"), {index: false}));
 
 var rooms = {};
 
@@ -70,7 +70,6 @@ io.on('connection', function (socket) {
             id: options.userId,
             name: options.userName,
             colour: options.userColour,
-            cursorPos: {x: 0, y: 0},
             screen: options.userScreen
         };
 
@@ -95,23 +94,6 @@ io.on('connection', function (socket) {
 
             // bordcast mode to others in the room
             socket.broadcast.in(roomId).emit("modeChanged", mode);
-        });
-
-        socket.on('updateUserCursor', function (options, roomId) {
-            var user = rooms[roomId].soketIdToUsersMap[socket.id];
-
-            user.cursorPos = {
-                x: options.x,
-                y: options.y
-            };
-
-            user.screen = {
-                width: options.screenWidth,
-                height: options.screenHeight
-            };
-
-            // bordcast mode to others in the room
-            socket.broadcast.in(roomId).emit("userCursorUpdated", getUsersByRoomId(roomId));
         });
     });
 });

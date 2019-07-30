@@ -34,7 +34,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/room/:roomId', function (req, res) {
-    res.sendFile(__dirname + '/view/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
 
 io.on('connection', function (socket) {

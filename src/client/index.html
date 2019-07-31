@@ -2,8 +2,7 @@
 <html>
   <head>
     <title>CodeEditor</title>
-    <link rel="stylesheet" href="/index.css">
-    <link rel="stylesheet" href="/lib/codemirror.css">
+    <link rel="stylesheet" href="./styles/index.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   </head>
   <body>
@@ -15,7 +14,7 @@
                   <form>
                     <div class="form-group">
                       <h3>Language</h3>
-                      <select class="form-control" id="lenguage">
+                      <select class="form-control" id="language">
                         <option value="javascript">Javascript</option>
                         <option value="text/x-java">Java</option>
                         <option value="text/html">HTML</option>
@@ -59,14 +58,6 @@
 
     <input type="text" id="copyLocationInput" value="">
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/jquery.min.js"></script>
-    <script src="/lib/codemirror.js"></script>
-    <script src="/mode/javascript/javascript.js"></script>
-    <script src="/mode/clike/clike.js"></script>
-    <script src="/mode/xml/xml.js"></script>
-    <script src="/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="/init.js"></script>
-    <script src="/start.js"></script>
+    <script type="text/javascript" src="./js/index.js"></script>
   </body>
 </html>

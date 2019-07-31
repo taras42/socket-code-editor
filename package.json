@@ -1,6 +1,6 @@
 {
   "name": "code-editor",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "collaborative code editor",
   "main": "index.js",
   "scripts": {

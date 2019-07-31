@@ -5,6 +5,8 @@ import 'codemirror/mode/clike/clike';
 import 'codemirror/mode/xml/xml';
 import 'codemirror/mode/htmlmixed/htmlmixed';
 
+import events from '../../isomorfic/events';
+
 const App = {};
 
 App.documentBody = document.body;
@@ -25,7 +27,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
     autoScroll.checked = true;
 
     function onEditorChange(editor, options) {
-        socket.emit("edit", {
+        socket.emit(events.EDIT, {
             content: editor.getValue(),
             selections: editor.listSelections()
         }, roomId);
@@ -57,7 +59,7 @@ function initEditor(socket, editorTextArea, autoScroll, roomId, state) {
 
     editor.on("cursorActivity", onEditorChange);
 
-    socket.on("updateEditor", function (state) {
+    socket.on(events.UPDATE_EDITOR, function (state) {
         editor.off("cursorActivity", onEditorChange);
         setEditorContentState(editor, state);
         editor.on("cursorActivity", onEditorChange);
@@ -70,10 +72,10 @@ function initLanguageSelect(languageSelect, socket, editor, mode) {
     languageSelect.value = mode;
 
     languageSelect.addEventListener("change", function () {
-        socket.emit("modeChange", languageSelect.value);
+        socket.emit(events.MODE_CHANGE, languageSelect.value);
     });
 
-    socket.on("modeChanged", function (mode) {
+    socket.on(events.MODE_CHANGED, function (mode) {
         languageSelect.value = mode;
         editor.setOption("mode", mode);
     });
@@ -92,11 +94,11 @@ function initCopyRoomLinkButton(copyRoomLinkButton, copyLocationInput, roomLocat
 function initUsersTracking(users, socket, usersList, roomId) {
     rerenderList(usersList, users);
 
-    socket.on("newUserJoined", function (users) {
+    socket.on(events.NEW_USER_JOINED, function (users) {
         rerenderList(usersList, users);
     });
 
-    socket.on("userDisconnected", function (users) {
+    socket.on(events.USER_DISCONNECTED, function (users) {
         rerenderList(usersList, users);
     });
 };
@@ -131,7 +133,7 @@ App.init = function (options) {
         usersList = options.usersList,
         autoScroll = options.autoScroll;
 
-    socket.emit('room', roomId, {
+    socket.emit(events.ROOM, roomId, {
         userName: name,
         userColour: getRandomColor(),
         userId: App.userId,
@@ -141,7 +143,7 @@ App.init = function (options) {
         }
     });
 
-    socket.on('userInit', function (users, editorOptions) {
+    socket.on(events.USER_INIT, function (users, editorOptions) {
         const editor = initEditor(socket, editorTextArea, autoScroll, roomId, editorOptions);
 
         initLanguageSelect(languageSelect, socket, editor, editorOptions.mode);

@@ -136,11 +136,7 @@ App.init = function (options) {
     socket.emit(events.ROOM, roomId, {
         userName: name,
         userColour: getRandomColor(),
-        userId: App.userId,
-        userScreen: {
-            width: window.innerWidth,
-            height: window.innerHeight
-        }
+        userId: App.userId
     });
 
     socket.on(events.USER_INIT, function (users, editorOptions) {

@@ -34,8 +34,7 @@ module.exports = function(io) {
             room.soketIdToUsersMap[socket.id] = {
                 id: options.userId,
                 name: options.userName,
-                colour: options.userColour,
-                screen: options.userScreen
+                colour: options.userColour
             };
 
             const users = rooms.getUsersByRoomId(roomId);
